@@ -15,10 +15,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.cpen321application.Screen
 import com.example.cpen321application.ui.theme.CPEN321ApplicationTheme
 
 @Composable
-fun MainPage() {
+fun MainPage(
+    onNavigate: (Screen) -> Unit = {}
+) {
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(
@@ -27,17 +30,26 @@ fun MainPage() {
         ),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        MainMenuButton("Login")
-        MainMenuButton("Pixel Art")
-        MainMenuButton("Timer")
+        MainMenuButton("Login", onClick = {
+            onNavigate(Screen.LOGIN)
+        })
+        MainMenuButton("Pixel Art", onClick = {
+            onNavigate(Screen.PIXEL_ART)
+        })
+        MainMenuButton("Timer", onClick = {
+            onNavigate(Screen.TIMER)
+        })
     }
 
 }
 
 @Composable
-private fun MainMenuButton(text: String) {
+private fun MainMenuButton(
+    text: String,
+    onClick: () -> Unit
+) {
     Button(
-        onClick = {},
+        onClick = onClick,
         modifier = Modifier.size(
             width = 200.dp,
             height = 75.dp
