@@ -15,6 +15,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.example.cpen321application.ui.screens.MainPage
 import com.example.cpen321application.ui.theme.CPEN321ApplicationTheme
 import java.net.HttpURLConnection
 import java.net.URL
@@ -28,10 +29,11 @@ class MainActivity : ComponentActivity() {
         setContent {
             CPEN321ApplicationTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        apiBaseUrl = BuildConfig.API_BASE_URL,
-                        modifier = Modifier.padding(innerPadding)
-                    )
+//                    Greeting(
+//                        apiBaseUrl = BuildConfig.API_BASE_URL,
+//                        modifier = Modifier.padding(innerPadding)
+//                    )
+                    MainPage()
                 }
             }
         }
