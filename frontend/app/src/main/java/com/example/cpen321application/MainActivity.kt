@@ -43,6 +43,10 @@ class MainActivity : ComponentActivity() {
                 mutableStateOf(Screen.MAIN)
             }
 
+            fun goToMain() {
+                currentScreen = Screen.MAIN
+            }
+
 
             CPEN321ApplicationTheme {
 //                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -66,15 +70,21 @@ class MainActivity : ComponentActivity() {
                             }
 
                             Screen.LOGIN -> {
-                                LoginPage()
+                                LoginPage(onBackClick = {
+                                    goToMain()
+                                })
                             }
 
                             Screen.PIXEL_ART -> {
-                                PixelArtPage()
+                                PixelArtPage(onBackClick = {
+                                    goToMain()
+                                })
                             }
 
                             Screen.TIMER -> {
-                                TimerPage()
+                                TimerPage(onBackClick = {
+                                    goToMain()
+                                })
                             }
                         }
                     }
