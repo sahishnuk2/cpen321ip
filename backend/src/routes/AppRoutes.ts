@@ -28,4 +28,10 @@ export const AppRoutes = [
     action: controller.getServerTime,
     validation: [],
   },
+  {
+    method: "get",
+    path: "/student/name",
+    action: controller.getStudentName,
+    validation: [],
+  },
 ];

@@ -24,15 +24,17 @@ import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialException
+import com.example.cpen321application.BuildConfig
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
+import java.net.HttpURLConnection
+import java.net.URL
 import java.security.SecureRandom
-
-// TODO: To remove later
-private const val WEB_CLIENT_ID = "509299733928-e5tgi112qh427v925r1msqeiahv6kjj4.apps.googleusercontent.com"
-
 private fun generateSecureRandomNonce(byteLength: Int = 32): String {
     val randomBytes = ByteArray(byteLength)
     SecureRandom().nextBytes(randomBytes)
@@ -60,6 +62,18 @@ fun LoginPage(
     }
 
     var userEmail by remember {
+        mutableStateOf<String?>(null)
+    }
+
+    var serverIp by remember {
+        mutableStateOf<String?>(null)
+    }
+
+    var serverTime by remember {
+        mutableStateOf<String?>(null)
+    }
+
+    var studentName by remember {
         mutableStateOf<String?>(null)
     }
 
@@ -95,9 +109,24 @@ fun LoginPage(
                             credentialManager = credentialManager,
 
                             onSuccess = { name, email, idToken ->
-                                userName = name
-                                userEmail = email
-                                isLoading = false
+                                coroutineScope.launch {
+                                    val result = auth(
+                                        BuildConfig.API_BASE_URL,
+                                        idToken
+                                    )
+
+                                    if (result.successful) {
+                                        userName = name
+                                        userEmail = email
+
+                                        serverIp = fetchServerIP(BuildConfig.API_BASE_URL)
+                                        serverTime = fetchServerLocalTime(BuildConfig.API_BASE_URL)
+                                        studentName = fetchStudentName(BuildConfig.API_BASE_URL)
+                                    } else {
+                                        errorMessage = result.message
+                                    }
+                                    isLoading = false
+                                }
 
                                 println("Google ID token received")
                                 println("Token length: ${idToken.length}")
@@ -126,6 +155,13 @@ fun LoginPage(
 
             Text("Name: $userName")
             Text("Email: $userEmail")
+
+            Text("Server IP: $serverIp")
+            Text("Client IP")
+            Text("Server Local Time: $serverTime")
+            Text("Client Local Time")
+            Text("My Name: $studentName")
+            Text("User's Name: $userName")
         }
 
         errorMessage?.let {
@@ -150,7 +186,7 @@ private suspend fun signInWithGoogle(
     try {
         val googleIdOption = GetGoogleIdOption.Builder()
             .setFilterByAuthorizedAccounts(false)
-            .setServerClientId(WEB_CLIENT_ID)
+            .setServerClientId(BuildConfig.GOOGLE_CLIENT_ID)
             .setAutoSelectEnabled(false)
             .setNonce(generateSecureRandomNonce())
             .build()
@@ -186,5 +222,131 @@ private suspend fun signInWithGoogle(
         onError("Could not read Google sign-in response")
     } catch (error: GetCredentialException) {
         onError("Google sign-in failed: ${error.message}")
+    }
+}
+
+private data class AuthResult(
+    val successful: Boolean,
+    val message: String
+)
+
+private suspend fun auth(apiBaseUrl: String, token: String): AuthResult = withContext(Dispatchers.IO) {
+    val authUrl = "${apiBaseUrl.trimEnd('/')}/auth/google"
+    var connection: HttpURLConnection? = null
+    try {
+        connection = (URL(authUrl).openConnection() as HttpURLConnection)
+        connection.apply {
+            requestMethod = "POST"
+            connectTimeout = 5_000
+            readTimeout = 5_000
+            doOutput = true
+
+            setRequestProperty("Content-Type", "application/json")
+            setRequestProperty("Accept", "application/json")
+        }
+
+        val requestBody = JSONObject().put("token", token).toString()
+
+        connection.outputStream
+            .bufferedWriter(Charsets.UTF_8)
+            .use { writer ->
+                writer.write(requestBody)
+            }
+
+        when (val code = connection.responseCode) {
+            HttpURLConnection.HTTP_OK -> {
+                val body = connection.inputStream.bufferedReader().use { it.readText() }
+                AuthResult(successful = true, message = body)
+            }
+            else -> {
+                val errorBody = connection.errorStream?.bufferedReader()?.use { it.readText() }
+                AuthResult(
+                    successful = false,
+                    message = "Login failed: HTTP $code" +
+                        (errorBody?.let { " — $it" } ?: "")
+                )
+            }
+        }
+    } catch (e: Exception) {
+        AuthResult(
+            successful = false,
+            message = "Backend unreachable ($authUrl): ${e.message ?: e.javaClass.simpleName}"
+        )
+    } finally {
+        connection?.disconnect()
+    }
+}
+
+private suspend fun fetchServerIP(apiBaseUrl: String): String = withContext(Dispatchers.IO) {
+    val url = "${apiBaseUrl.trimEnd('/')}/server/ip"
+    try {
+        val connection = (URL(url).openConnection() as HttpURLConnection).apply {
+            requestMethod = "GET"
+            connectTimeout = 5_000
+            readTimeout = 5_000
+        }
+
+        when (val code = connection.responseCode) {
+            HttpURLConnection.HTTP_OK -> {
+                val body = connection.inputStream.bufferedReader().use { it.readText() }
+                JSONObject(body).getString("ip")
+            }
+            else -> {
+                val errorBody = connection.errorStream?.bufferedReader()?.use { it.readText() }
+                "Backend error ($url): HTTP $code${errorBody?.let { " — $it" } ?: ""}"
+            }
+        }
+    } catch (e: Exception) {
+        "Backend unreachable ($url): ${e.message ?: e.javaClass.simpleName}"
+    }
+}
+
+private suspend fun fetchServerLocalTime(apiBaseUrl: String): String = withContext(Dispatchers.IO) {
+    val url = "${apiBaseUrl.trimEnd('/')}/server/time"
+    try {
+        val connection = (URL(url).openConnection() as HttpURLConnection).apply {
+            requestMethod = "GET"
+            connectTimeout = 5_000
+            readTimeout = 5_000
+        }
+
+        when (val code = connection.responseCode) {
+            HttpURLConnection.HTTP_OK -> {
+                val body = connection.inputStream.bufferedReader().use { it.readText() }
+                JSONObject(body).getString("time")
+            }
+            else -> {
+                val errorBody = connection.errorStream?.bufferedReader()?.use { it.readText() }
+                "Backend error ($url): HTTP $code${errorBody?.let { " — $it" } ?: ""}"
+            }
+        }
+    } catch (e: Exception) {
+        "Backend unreachable ($url): ${e.message ?: e.javaClass.simpleName}"
+    }
+}
+
+private suspend fun fetchStudentName(apiBaseUrl: String): String = withContext(Dispatchers.IO) {
+    val url = "${apiBaseUrl.trimEnd('/')}/student/name"
+    try {
+        val connection = (URL(url).openConnection() as HttpURLConnection).apply {
+            requestMethod = "GET"
+            connectTimeout = 5_000
+            readTimeout = 5_000
+        }
+
+        when (val code = connection.responseCode) {
+            HttpURLConnection.HTTP_OK -> {
+                val body = connection.inputStream.bufferedReader().use { it.readText() }
+                val json = JSONObject(body)
+                "${json.getString("firstName")} ${json.getString("lastName")}"
+
+            }
+            else -> {
+                val errorBody = connection.errorStream?.bufferedReader()?.use { it.readText() }
+                "Backend error ($url): HTTP $code${errorBody?.let { " — $it" } ?: ""}"
+            }
+        }
+    } catch (e: Exception) {
+        "Backend unreachable ($url): ${e.message ?: e.javaClass.simpleName}"
     }
 }

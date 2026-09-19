@@ -45,6 +45,8 @@ export class AppController {
         });
       }
 
+      console.log("Backend auth is successful");
+
       return res.json({
         authenticated: true,
         name: payload.name,
@@ -75,7 +77,7 @@ export class AppController {
 
   async getStudentName(_req: Request, res: Response, next: NextFunction) {
     res.json({
-      firstName: process.env.STUDENT_NAME || "YourFirstName",
+      firstName: process.env.STUDENT_FIRST_NAME || "YourFirstName",
       lastName: process.env.STUDENT_LAST_NAME || "YourLastName",
     });
   }
