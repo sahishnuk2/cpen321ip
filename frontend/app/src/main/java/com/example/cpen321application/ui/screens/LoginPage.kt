@@ -35,6 +35,11 @@ import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 import java.security.SecureRandom
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.net.NetworkInterface
+import java.util.Collections
 private fun generateSecureRandomNonce(byteLength: Int = 32): String {
     val randomBytes = ByteArray(byteLength)
     SecureRandom().nextBytes(randomBytes)
@@ -69,7 +74,15 @@ fun LoginPage(
         mutableStateOf<String?>(null)
     }
 
+    var clientIp by remember {
+        mutableStateOf<String?>(null)
+    }
+
     var serverTime by remember {
+        mutableStateOf<String?>(null)
+    }
+
+    var clientTime by remember {
         mutableStateOf<String?>(null)
     }
 
@@ -120,8 +133,11 @@ fun LoginPage(
                                         userEmail = email
 
                                         serverIp = fetchServerIP(BuildConfig.API_BASE_URL)
+                                        clientIp = getLocalIpAddress(useIPv4 = true)
                                         serverTime = fetchServerLocalTime(BuildConfig.API_BASE_URL)
+                                        clientTime = getClientLocalTime()
                                         studentName = fetchStudentName(BuildConfig.API_BASE_URL)
+
                                     } else {
                                         errorMessage = result.message
                                     }
@@ -153,13 +169,13 @@ fun LoginPage(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text("Name: $userName")
-            Text("Email: $userEmail")
+//            Text("Name: $userName")
+//            Text("Email: $userEmail")
 
             Text("Server IP: $serverIp")
-            Text("Client IP")
+            Text("Client IP: $clientIp")
             Text("Server Local Time: $serverTime")
-            Text("Client Local Time")
+            Text("Client Local Time: $clientTime")
             Text("My Name: $studentName")
             Text("User's Name: $userName")
         }
@@ -349,4 +365,58 @@ private suspend fun fetchStudentName(apiBaseUrl: String): String = withContext(D
     } catch (e: Exception) {
         "Backend unreachable ($url): ${e.message ?: e.javaClass.simpleName}"
     }
+}
+
+fun getClientLocalTime(): String {
+    val formatter = DateTimeFormatter.ofPattern("HH:mm:ss 'GMT'XXX")
+
+    return ZonedDateTime
+        .now(ZoneId.systemDefault())
+        .format(formatter)
+}
+
+// Adapted from stack overflow: https://stackoverflow.com/questions/6064510/how-to-get-ip-address-of-the-device-from-code
+fun getLocalIpAddress(useIPv4: Boolean): String {
+    try {
+        val interfaces = Collections.list(
+            NetworkInterface.getNetworkInterfaces()
+        )
+
+        for (networkInterface in interfaces) {
+            val addresses = Collections.list(
+                networkInterface.inetAddresses
+            )
+
+            for (address in addresses) {
+                if (address.isLoopbackAddress) {
+                    continue
+                }
+
+                val hostAddress = address.hostAddress
+                    ?: continue
+
+                val isIPv4 = !hostAddress.contains(":")
+
+                if (useIPv4 && isIPv4) {
+                    return hostAddress
+                }
+
+                if (!useIPv4 && !isIPv4) {
+                    val zoneIndex = hostAddress.indexOf("%")
+
+                    if (zoneIndex < 0) {
+                        return hostAddress.uppercase()
+                    } else {
+                        return hostAddress
+                            .substring(0, zoneIndex)
+                            .uppercase()
+                    }
+                }
+            }
+        }
+    } catch (error: Exception) {
+        return ""
+    }
+
+    return ""
 }

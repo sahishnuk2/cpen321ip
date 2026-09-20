@@ -69,9 +69,12 @@ export class AppController {
     });
   }
 
-  async getServerTime(_req: Request, res: Response, next: NextFunction) {
+  async getServerTime(_req: Request, res: Response, _next: NextFunction) {
     res.json({
-      time: new Date().toISOString(),
+      time: new Date().toLocaleTimeString("en-GB", {
+        hour12: false,
+        timeZoneName: "longOffset",
+      }),
     });
   }
 
