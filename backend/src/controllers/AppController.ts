@@ -73,6 +73,7 @@ export class AppController {
     res.json({
       time: new Date().toLocaleTimeString("en-GB", {
         hour12: false,
+        timeZone: "UTC",
         timeZoneName: "longOffset",
       }),
     });
