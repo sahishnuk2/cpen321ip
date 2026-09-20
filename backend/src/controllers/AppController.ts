@@ -65,7 +65,7 @@ export class AppController {
 
   async getServerIp(_req: Request, res: Response, next: NextFunction) {
     res.json({
-      ip: "placeholder",
+      ip: process.env.SERVER_PUBLIC_IP || "Unknown",
     });
   }
 
