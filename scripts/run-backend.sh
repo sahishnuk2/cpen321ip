@@ -17,7 +17,7 @@ command -v docker >/dev/null 2>&1 || die "Docker not found."
 docker info >/dev/null 2>&1       || die "Docker is not running."
 command -v curl >/dev/null 2>&1    || die "curl not found."
 
-[[ -f backend/.env ]] || die "Missing backend/.env — follow the student setup guide first."
+[[ -f backend/.env ]] || die "Missing backend/.env — copy backend/.env.example to backend/.env and fill in the values."
 
 BACKEND_PORT="$(grep -E '^PORT=' backend/.env | head -1 | cut -d= -f2- | tr -d ' "' || true)"
 BACKEND_HEALTH_URL="${BACKEND_HEALTH_URL:-http://localhost:${BACKEND_PORT:-3000}/health}"

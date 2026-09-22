@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM node:24-alpine
+FROM node:22-alpine
 WORKDIR /app
 
 COPY package.json package-lock.json ./
@@ -12,7 +12,7 @@ COPY . .
 ENV PORT=3000 
 ENV NODE_ENV=development
 
-# documents that the container listens on port 3000
-EXPOSE 3000
+# The API uses 3000 and the frontend WebSocket relay uses 3001.
+EXPOSE 3000 3001
 
 CMD ["npm", "run", "dev"]

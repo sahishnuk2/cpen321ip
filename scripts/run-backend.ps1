@@ -27,7 +27,7 @@ docker info *> $null
 if ($LASTEXITCODE -ne 0) { Die "Docker is not running." }
 if (-not (Get-Command curl.exe -ErrorAction SilentlyContinue))  { Die "curl.exe not found." }
 
-if (-not (Test-Path 'backend\.env')) { Die "Missing backend\.env - follow the student setup guide first." }
+if (-not (Test-Path 'backend\.env')) { Die "Missing backend\.env - copy backend\.env.example to backend\.env and fill in the values." }
 
 $backendPortLine = Get-Content 'backend\.env' | Where-Object { $_ -match '^PORT=' } | Select-Object -First 1
 $BackendPort = '3000'
