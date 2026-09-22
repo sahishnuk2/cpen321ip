@@ -465,7 +465,9 @@ private fun SingaporeFactsPage(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Singlish Lesson Time! 🇸🇬", fontSize = 32.sp)
+        Text(text = "Singlish Lesson Time!", fontSize = 32.sp)
+
+        Text(text = "🇸🇬", fontSize = 32.sp)
 
         Text(
             text = "(Singaporean slang)",
