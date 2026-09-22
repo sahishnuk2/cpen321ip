@@ -129,6 +129,68 @@ fun TimerPage(onBackClick: () -> Unit) {
                 
                 Fewer words, same pressure.
             """.trimIndent()
+            ),
+
+            SingaporeFact(
+                fact = "\"Bo jio\" means someone did not invite you.",
+                example = """
+                "You all went for supper and never tell me. Bo jio!"
+                
+                Meaning:
+                "You went for supper without inviting me!"
+            """.trimIndent()
+            ),
+
+            SingaporeFact(
+                fact = "\"Eye power\" means watching other people work without helping.",
+                example = """
+                "Don't just eye power lah. Come and help us."
+                
+                Meaning:
+                "Do not just watch. Come and help us."
+            """.trimIndent()
+            ),
+
+            SingaporeFact(
+                fact = "\"Kaypoh\" describes someone who is overly curious or nosy.",
+                example = """
+                "Why you so kaypoh?"
+                
+                Meaning:
+                "Why are you being so nosy?"
+            """.trimIndent()
+            ),
+
+            SingaporeFact(
+                fact = "\"Agak-agak\" means to estimate or make a rough guess.",
+                example = """
+                A: "Do you think this is enough water in the drink?"
+                B: "Just agak-agak lah"
+                
+                Meaning:
+                "Just estimate how much water to add."
+            """.trimIndent()
+            ),
+
+            SingaporeFact(
+                fact = "\"Abuden\" is a sarcastic way of saying \"obviously\" or \"of course\".",
+                example = """
+                A: "You came here to eat?"
+                B: "Abuden?"
+                
+                Meaning:
+                "Obviously!"
+            """.trimIndent()
+            ),
+
+            SingaporeFact(
+                fact = "\"Alamak\" expresses surprise, shock, or frustration.",
+                example = """
+                "Alamak, I forgot my keys!"
+                
+                Meaning:
+                "Oh no, I forgot my keys!"
+            """.trimIndent()
             )
         )
     }
@@ -403,10 +465,10 @@ private fun SingaporeFactsPage(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Fun Facts of Singapore!", fontSize = 32.sp)
+        Text(text = "Singlish Lesson Time! 🇸🇬", fontSize = 32.sp)
 
         Text(
-            text = "(from an exchange student from Singapore)",
+            text = "(Singaporean slang)",
             fontSize = 14.sp,
             textAlign = TextAlign.Center
         )
